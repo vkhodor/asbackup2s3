@@ -47,7 +47,8 @@ def make_cmd_string(host, namespace, setconfig, str_now):
 
 def create_asbackup(host, namespace, setconfig, str_now):
     cmd = make_cmd_string(host, namespace, setconfig, str_now)
-
+    result = os.system(cmd)
+    print(result)
 
 def now_as_string():
     return datetime.now().strftime('%Y%m%d-%H%M%S')
