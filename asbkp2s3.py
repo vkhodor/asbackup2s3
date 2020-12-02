@@ -51,8 +51,8 @@ def create_asbackup(host, namespace, setconfig, str_now):
 #    result = os.system(cmd)
     exec_proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout, stderr = exec_proc.communicate()
-    print(str(stdout))
-    print(str(stderr))
+    print(stdout.decode('utf-8'))
+    print(stderr.decode('utf-8'))
     print(exec_proc.returncode)
 
 
