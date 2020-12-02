@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 import boto3
 from boto3.s3.transfer import TransferConfig
+from boto3.s3.transfer import  S3Transfer
 
 from config import SERVERS
 
@@ -45,7 +46,7 @@ def s3_upload_file(s3_bucket, local_filename, remote_filename):
         multipart_chunksize=1024*25,
         use_threads=True
     )
-    transfer = boto3.S3Transfer(s3_client, config)
+    transfer = S3Transfer(s3_client, config)
     transfer.upload_file(local_filename, s3_bucket, remote_filename)
 
 
