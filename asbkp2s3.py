@@ -3,6 +3,7 @@
 import sys
 import os
 from datetime import datetime
+import subprocess
 from config import SERVERS
 
 
@@ -22,7 +23,7 @@ def make_cmd_string(host, namespace, setconfig, str_now):
     if 'nice' in setconfig.keys():
         str_nice = '--nice {0}'.format(setconfig['nice'])
 
-    str_cmd = 'bash -c \'asbackup -h {host} {nice} -n {namespace} -r -o {local_path}/{namespace}_{now}.asbackup &> {log_directory}/{namespace}_{now}.log\''.format(
+    str_cmd = 'bash -c \'asbackup -h {host} {nice} -n {namespace} -r -o {local_path}/{namespace}_{now}.asbackup\''.format(
         host=host,
         nice=str_nice,
         namespace=namespace,
@@ -32,7 +33,7 @@ def make_cmd_string(host, namespace, setconfig, str_now):
     )
 
     if 'gzip' in setconfig.keys() and setconfig['gzip'] == True:
-        str_cmd = 'bash -c \'asbackup -h {host} {nice} -n {namespace} -r -o - | gzip -1 > {local_path}/{namespace}_{now}.asbackup.gz 2> {log_directory}/{namespace}_{now}.log\''.format(
+        str_cmd = 'bash -c \'asbackup -h {host} {nice} -n {namespace} -r -o - | gzip -1 > {local_path}/{namespace}_{now}.asbackup.gz\''.format(
             host=host,
             nice=str_nice,
             namespace=namespace,
@@ -47,10 +48,15 @@ def make_cmd_string(host, namespace, setconfig, str_now):
 
 def create_asbackup(host, namespace, setconfig, str_now):
     cmd = make_cmd_string(host, namespace, setconfig, str_now)
-    result = os.system(cmd)
-    if result != 0:
-        print('[DBG] asbackup returned non zero code!')
-        return False
+#    result = os.system(cmd)
+    exec_proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout, stderr = exec_proc.communicate()
+    print(stdout)
+    print(stderr)
+
+ #   if result != 0:
+ #       print('[DBG] asbackup returned non zero code!')
+ #       return False
     return True
 
 def now_as_string():
