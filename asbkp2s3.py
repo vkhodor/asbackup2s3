@@ -51,8 +51,10 @@ def create_asbackup(host, namespace, setconfig, str_now):
 #    result = os.system(cmd)
     exec_proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout, stderr = exec_proc.communicate()
-    print(stdout)
-    print(stderr)
+    print(str(stdout))
+    print(str(stderr))
+    print(exec_proc.returncode)
+
 
  #   if result != 0:
  #       print('[DBG] asbackup returned non zero code!')
