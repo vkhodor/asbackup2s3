@@ -3,7 +3,9 @@
 import sys
 import os
 from datetime import datetime
-import subprocess
+import boto3
+from boto3.s3.transfer import TransferConfig
+
 from config import SERVERS
 
 
@@ -35,6 +37,17 @@ def make_cmd_string(host, namespace, setconfig, str_now):
     print('[DBG] {0}'.format(str_cmd))
     return str_cmd
 
+def s3_upload_file(s3_bucket, local_filename, remote_filename):
+    s3_client = boto3.client('s3')
+    config = TransferConfig(
+        multipart_threshold=1024*25,
+        max_concurrency=10,
+        multipart_chunksize=1024*25,
+        use_threads=True
+    )
+    transfer = boto3.S3Transfer(s3_client, config)
+    transfer.upload_file(local_filename, s3_bucket, remote_filename)
+
 
 def create_asbackup(host, namespace, setconfig, str_now):
     cmd = make_cmd_string(host, namespace, setconfig, str_now)
@@ -64,7 +77,12 @@ def main(args=sys.argv):
         mkdirs(setconfig['local_path'], setconfig['log_directory'])
 
         if action == 'create':
-            create_asbackup(host, namespace, setconfig, str_now)
+            if not create_asbackup(host, namespace, setconfig, str_now):
+                print('[ERR] Can not create asbackup file.')
+                exit(4)
+            filename = '{0}/{1}_{2}.asbackup'.format(setconfig['local_path'], namespace, str_now)
+            remote_filename = '{0}/{1}_{2}.asbackup'.format(setconfig['s3_path'], namespace, str_now)
+            s3_upload_file(setconfig['s3_bucket'], filename, remote_filename)
         elif action == 'list':
             pass
         elif action == 'get':

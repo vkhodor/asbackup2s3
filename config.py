@@ -3,7 +3,8 @@ SERVERS = {
     'userdata': {
       'nice': 30,
       'local_path': '/mnt/aerospike_backup/userdata',
-      'remote_path': 's3://personartb-backup/aerospike-cluster/userdata',
+      's3_bucket': 'personartb-backup',
+      's3_path': 'prod/us-aerospike-cluster',
       'log_directory': '/tmp',
       'remote_store_size': '5Tb',
       'remove_local': True,
@@ -12,7 +13,8 @@ SERVERS = {
     'dictionary': {
       'nice': 30,
       'local_path': '/mnt/aerospike_backup/directory',
-      'remote_path': 's3://personartb-backup/aerospike-cluster/directory',
+      's3_bucket': 'personartb-backup',
+      's3_path': 'prod/us-aerospike-cluster',
       'log_directory': '/tmp',
       'remote_store_size': '500Gb',
       'remove_local': True,
@@ -20,7 +22,8 @@ SERVERS = {
     'trackdata': {
       'nice': 30,
       'local_path': '/mnt/aerospike_backup/trackdata',
-      'remote_path': 's3://personartb-backup/aerospike-cluster/trackdata',
+      's3_bucket': 'personartb-backup',
+      's3_path': 'prod/us-aerospike-cluster',
       'log_directory': '/tmp',
       'remote_store_size': '500Gb',
       'remove_local': True
