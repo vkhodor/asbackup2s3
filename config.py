@@ -1,5 +1,5 @@
 SERVERS = {
-  '3.12.67.231': {
+  '172.31.31.11': {
     'userdata': {
       'nice': 30,
       'local_path': '/mnt/aerospike_backup/userdata',
@@ -10,13 +10,14 @@ SERVERS = {
       'with_md5': True,
       'gzip': False
     },
-    'directory': {
+    'dictionary': {
       'nice': 30,
       'local_path': '/mnt/aerospike_backup/directory',
       'remote_path': 's3://personartb-backup/aerospike-cluster/directory',
       'log_directory': '/tmp',
       'remote_store_size': '500Gb',
-      'remove_local': True
+      'remove_local': True,
+      'gzip': True
     },
     'trackdata': {
       'nice': 30,
