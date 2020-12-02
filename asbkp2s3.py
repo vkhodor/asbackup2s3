@@ -23,7 +23,7 @@ def make_cmd_string(host, namespace, setconfig, str_now):
     if 'nice' in setconfig.keys():
         str_nice = '--nice {0}'.format(setconfig['nice'])
 
-    str_cmd = 'asbackup -h {host} {nice} -n {namespace} -r -o {local_path}/{namespace}_{now}.asbackup'.format(
+    str_cmd = 'asbackup -h {host} {nice} -n {namespace} -r -o {local_path}/{namespace}_{now}.asbackup &> {log_directory}/{namespace}_{now}.log'.format(
         host=host,
         nice=str_nice,
         namespace=namespace,
@@ -32,32 +32,16 @@ def make_cmd_string(host, namespace, setconfig, str_now):
         log_directory=setconfig['log_directory']
     )
 
-    if 'gzip' in setconfig.keys() and setconfig['gzip'] == True:
-        str_cmd = 'asbackup -h {host} {nice} -n {namespace} -r -o - | gzip -1 > {local_path}/{namespace}_{now}.asbackup.gz'.format(
-            host=host,
-            nice=str_nice,
-            namespace=namespace,
-            local_path=setconfig['local_path'],
-            now=str_now,
-            log_directory=setconfig['log_directory']
-        )
-
     print('[DBG] {0}'.format(str_cmd))
     return str_cmd
 
 
 def create_asbackup(host, namespace, setconfig, str_now):
     cmd = make_cmd_string(host, namespace, setconfig, str_now)
-#    result = os.system(cmd)
-    exec_proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-    stdout, stderr = exec_proc.communicate()
-    print(stdout.decode('utf-8'))
-    print(exec_proc.returncode)
-
-
- #   if result != 0:
- #       print('[DBG] asbackup returned non zero code!')
- #       return False
+    result = os.system(cmd)
+    if result != 0:
+        print('[DBG] asbackup returned non zero code!')
+        return False
     return True
 
 def now_as_string():

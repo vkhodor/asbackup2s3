@@ -8,7 +8,6 @@ SERVERS = {
       'remote_store_size': '5Tb',
       'remove_local': True,
       'with_md5': True,
-      'gzip': False
     },
     'dictionary': {
       'nice': 30,
@@ -17,7 +16,6 @@ SERVERS = {
       'log_directory': '/tmp',
       'remote_store_size': '500Gb',
       'remove_local': True,
-      'gzip': True
     },
     'trackdata': {
       'nice': 30,
