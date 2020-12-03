@@ -40,6 +40,17 @@ def make_cmd_string(host, namespace, setconfig, str_now):
 
 def s3_upload_file(s3_bucket, local_filename, remote_filename):
     s3_client = boto3.client('s3')
+    stat = os.stat(local_filename)
+    total_length = stat.st_size
+    downloaded = 0
+
+    def progress(chunk):
+        nonlocal downloaded
+        downloaded += chunk
+        done = int(50 * downloaded / total_length)
+        sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50 - done)))
+        sys.stdout.flush()
+
     config = TransferConfig(
         multipart_threshold=1024*25,
         max_concurrency=10,
@@ -47,7 +58,7 @@ def s3_upload_file(s3_bucket, local_filename, remote_filename):
         use_threads=True
     )
     transfer = S3Transfer(s3_client, config)
-    transfer.upload_file(local_filename, s3_bucket, remote_filename)
+    transfer.upload_file(local_filename, s3_bucket, remote_filename, callback=progress)
 
 
 def create_asbackup(host, namespace, setconfig, str_now):
