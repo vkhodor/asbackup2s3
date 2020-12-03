@@ -38,18 +38,22 @@ def make_cmd_string(host, namespace, setconfig, str_now):
     print('[DBG] {0}'.format(str_cmd))
     return str_cmd
 
-def s3_upload_file(s3_bucket, local_filename, remote_filename):
-    s3_client = boto3.client('s3')
-    stat = os.stat(local_filename)
-    total_length = stat.st_size
-    downloaded = 0
+
+def make_progress(file_size, prefix_msg):
+    processed = 0
 
     def progress(chunk):
-        nonlocal downloaded
-        downloaded += chunk
-        done = int(50 * downloaded / total_length)
-        sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50 - done)))
+        nonlocal processed
+        processed += chunk
+        done_pct = int( processed / (file_size * 0.01))
+        sys.stdout.write('{0} {1}%\n'.format(prefix_msg, done_pct))
         sys.stdout.flush()
+    return progress
+
+
+def s3_upload_file(s3_bucket, local_filename, remote_filename):
+    s3_client = boto3.client('s3')
+    print_progress = make_progress(os.stat(local_filename), '[INF] File uploaded for')
 
     config = TransferConfig(
         multipart_threshold=1024*25,
@@ -58,7 +62,7 @@ def s3_upload_file(s3_bucket, local_filename, remote_filename):
         use_threads=True
     )
     transfer = S3Transfer(s3_client, config)
-    transfer.upload_file(local_filename, s3_bucket, remote_filename, callback=progress)
+    transfer.upload_file(local_filename, s3_bucket, remote_filename, callback=print_progress)
 
 
 def create_asbackup(host, namespace, setconfig, str_now):
