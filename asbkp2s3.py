@@ -45,8 +45,8 @@ def make_progress(file_size, prefix_msg):
     def progress(chunk):
         nonlocal processed
         processed += chunk
-        done_pct = int( processed / (file_size * 0.01))
-        sys.stdout.write('{0} {1}%\n'.format(prefix_msg, done_pct))
+        done_pct = processed / (file_size * 0.01)
+        sys.stdout.write('{0} {1:2f}%\n'.format(prefix_msg, done_pct))
         sys.stdout.flush()
     return progress
 
@@ -73,6 +73,7 @@ def create_asbackup(host, namespace, setconfig, str_now):
         return False
     return True
 
+
 def now_as_string():
     return datetime.now().strftime('%Y%m%d-%H%M%S')
 
@@ -93,11 +94,22 @@ def main(args=sys.argv):
         mkdirs(setconfig['local_path'], setconfig['log_directory'])
 
         if action == 'create':
+            print('[INF] Executing asbackup...')
+            print('[INF] More details in {log_directory}/{namespace}_{now}.log'.format(
+                log_directory=setconfig['log_directory'],
+                namespace=namespace,
+                now=str_now
+            ))
             if not create_asbackup(host, namespace, setconfig, str_now):
                 print('[ERR] Can not create asbackup file.')
                 exit(4)
             filename = '{0}/{1}_{2}.asbackup'.format(setconfig['local_path'], namespace, str_now)
             remote_filename = '{0}/{1}_{2}.asbackup'.format(setconfig['s3_path'], namespace, str_now)
+            print('[INF] Uploading {local_file} to s3://{bucket}/{remote_filename}...'.format(
+                local_file=filename,
+                bucket=setconfig['s3_bucket'],
+                remote_filename=remote_filename
+            ))
             s3_upload_file(setconfig['s3_bucket'], filename, remote_filename)
         elif action == 'list':
             pass
