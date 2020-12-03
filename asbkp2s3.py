@@ -50,8 +50,8 @@ def make_progress(file_size, prefix_msg):
         count += 1
 
         done_pct = processed / (file_size * 0.01)
-        if count % 10 == 0:
-            sys.stdout.write('{0} {1:2.2f} %\n'.format(prefix_msg, done_pct))
+        if count % 20 == 0:
+            sys.stdout.write('{0} {1:3.2f}%\n'.format(prefix_msg, done_pct))
             sys.stdout.flush()
 
     return progress
@@ -117,6 +117,7 @@ def main(args=sys.argv):
                 remote_filename=remote_filename
             ))
             s3_upload_file(setconfig['s3_bucket'], filename, remote_filename)
+            print('[INF] File successfully uploaded!')
         elif action == 'list':
             str_now = '20201203-053844'
             namespace = 'dictionary'
