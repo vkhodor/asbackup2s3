@@ -53,7 +53,7 @@ def make_progress(file_size, prefix_msg):
 
 def s3_upload_file(s3_bucket, local_filename, remote_filename):
     s3_client = boto3.client('s3')
-    print_progress = make_progress(os.stat(local_filename), '[INF] File uploaded for')
+    print_progress = make_progress(os.stat(local_filename).st_size, '[INF] File uploaded for')
 
     config = TransferConfig(
         multipart_threshold=1024*25,
