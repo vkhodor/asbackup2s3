@@ -41,13 +41,19 @@ def make_cmd_string(host, namespace, setconfig, str_now):
 
 def make_progress(file_size, prefix_msg):
     processed = 0
+    count = 0
 
     def progress(chunk):
         nonlocal processed
         processed += chunk
+        nonlocal count
+        count += 1
+
         done_pct = processed / (file_size * 0.01)
-        sys.stdout.write('{0} {1:2f}%\n'.format(prefix_msg, done_pct))
-        sys.stdout.flush()
+        if count % 10 == 0:
+            sys.stdout.write('{0} {1:2.2f} %\n'.format(prefix_msg, done_pct))
+            sys.stdout.flush()
+
     return progress
 
 
