@@ -112,7 +112,11 @@ def main(args=sys.argv):
             ))
             s3_upload_file(setconfig['s3_bucket'], filename, remote_filename)
         elif action == 'list':
-            pass
+            str_now = '20201203-053844'
+            namespace = 'dictionary'
+            filename = '{0}/{1}_{2}.asbackup'.format(setconfig['local_path'], namespace, str_now)
+            remote_filename = '{0}/{1}_{2}.asbackup'.format(setconfig['s3_path'], namespace, str_now)
+            s3_upload_file(setconfig['s3_bucket'], filename, remote_filename)
         elif action == 'get':
             pass
 
