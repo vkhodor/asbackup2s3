@@ -124,6 +124,16 @@ def s3_md5sum(s3_client, s3_bucket, filename):
     return ''
 
 
+def etag_checksum(filename):
+    chunk_size=8 * 1024 * 1024
+    md5s = []
+    with open(filename, 'rb') as f:
+        for data in iter(lambda: f.read(chunk_size), b''):
+            md5s.append(hashlib.md5(data).digest())
+    m = hashlib.md5(''.join(md5s))
+    return '{}-{}'.format(m.hexdigest(), len(md5s))
+
+
 def md5sum(filename):
     return hashlib.md5(pathlib.Path(filename).read_bytes()).hexdigest()
 
@@ -131,7 +141,7 @@ def md5sum(filename):
 def s3_md5_check(s3_client, s3_bucket, s3_file, local_file):
     s3_md5 = s3_md5sum(s3_client, s3_bucket, s3_file)
     print('[DBG] s3_md5sum: {0}'.format(s3_md5))
-    local_md5 = md5sum(local_file)
+    local_md5 = etag_checksum(local_file)
     print('[DBG] local_md5sum: {0}'.format(local_md5))
     if s3_md5 != local_md5:
         return False
