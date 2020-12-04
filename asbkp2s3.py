@@ -102,13 +102,14 @@ def main(args=sys.argv):
     try:
         setconfig = SERVERS[host][namespace]
 
-        mkdirs(setconfig['local_path'], setconfig['log_directory'])
+        mkdirs(setconfig['local_path'])
 
         if action == 'create':
             print('[INF] Executing asbackup...')
             if not create_asbackup(host, namespace, setconfig, str_now):
                 print('[ERR] Can not create asbackup file.')
                 exit(4)
+
             filename = '{directory}/{filename}'.format(directory=setconfig['local_path'], filename=make_file_name(namespace, str_now))
             remote_filename = '{s3_path}/{filename}'.format(s3_path=setconfig['s3_path'], filename=make_file_name(namespace, str_now))
             print('[INF] Uploading {local_file} to s3://{bucket}/{remote_filename}...'.format(
@@ -116,8 +117,12 @@ def main(args=sys.argv):
                 bucket=setconfig['s3_bucket'],
                 remote_filename=remote_filename
             ))
+
+            start_time = datetime.now()
             s3_upload_file(setconfig['s3_bucket'], filename, remote_filename)
-            print('[INF] File successfully uploaded!')
+            end_time = datetime.now()
+            delta_time = start_time - end_time
+            print('[INF] File successfully uploaded in {delta_time}!'.format(delta_time=delta_time))
         elif action == 'list':
             pass
         elif action == 'get':

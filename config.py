@@ -5,7 +5,6 @@ SERVERS = {
       'local_path': '/mnt/aerospike-backups/userdata',
       's3_bucket': 'personartb-backup',
       's3_path': 'prod/us-aerospike-cluster',
-      'log_directory': '/tmp',
       'remote_store_size': '5Tb',
       'remove_local': True,
       'with_md5': True,
@@ -16,7 +15,6 @@ SERVERS = {
       'local_path': '/mnt/aerospike-backups/directory',
       's3_bucket': 'personartb-backup',
       's3_path': 'prod/us-aerospike-cluster',
-      'log_directory': '/tmp',
       'remote_store_size': '500Gb',
       'remove_local': True,
       'estimated_size': 123123
@@ -26,7 +24,6 @@ SERVERS = {
       'local_path': '/mnt/aerospike-backups/trackdata',
       's3_bucket': 'personartb-backup',
       's3_path': 'prod/us-aerospike-cluster',
-      'log_directory': '/tmp',
       'remote_store_size': '500Gb',
       'remove_local': True,
       'estimated_size': 33423
