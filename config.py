@@ -8,7 +8,7 @@ SERVERS = {
       'remote_store_size': '5Tb',
       'remove_local': True,
       'with_md5': True,
-      'estimated_size': 1000000
+      'estimated_size': 600000000
     },
     'dictionary': {
       'nice': 30,
@@ -16,7 +16,7 @@ SERVERS = {
       's3_bucket': 'personartb-backup',
       's3_path': 'prod/us-aerospike-cluster',
       'remote_store_size': '500Gb',
-      'remove_local': False,
+      'remove_local': True,
       'estimated_size': 600000000
     },
     'trackdata': {
@@ -25,8 +25,8 @@ SERVERS = {
       's3_bucket': 'personartb-backup',
       's3_path': 'prod/us-aerospike-cluster',
       'remote_store_size': '500Gb',
-      'remove_local': True,
-      'estimated_size': 33423
+      'remove_local': False,
+      'estimated_size': 600000000
     }
   }
 }
