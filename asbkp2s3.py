@@ -7,7 +7,6 @@ import time
 import boto3
 from boto3.s3.transfer import TransferConfig
 from boto3.s3.transfer import  S3Transfer
-
 from config import SERVERS
 
 
@@ -27,6 +26,7 @@ def make_file_name(namespace, str_now):
         namespace=namespace,
         now=str_now
     )
+
 
 def make_cmd_string(host, namespace, setconfig, str_now):
     str_nice = ''
@@ -63,8 +63,7 @@ def make_progress(file_size, prefix_msg):
     return progress
 
 
-def s3_upload_file(s3_bucket, local_filename, remote_filename):
-    s3_client = boto3.client('s3')
+def s3_upload_file(s3_client, s3_bucket, local_filename, remote_filename):
     print_progress = make_progress(os.stat(local_filename).st_size, '[INF] File uploaded for')
 
     config = TransferConfig(
@@ -86,6 +85,27 @@ def create_asbackup(host, namespace, setconfig, str_now):
     return True
 
 
+def post_err(msg):
+    # TODO: post to slack
+    pass
+
+
+def estimated_size_ok(filename, estimated_size):
+    stat = os.stat(filename)
+    print('[DBG] File size: {0}'.format(stat.st_size))
+    print('[DBG] Estimated size: {0}'.format(estimated_size))
+    if stat.st_size <= estimated_size:
+        return False
+    return True
+
+
+def s3_file_exists(filename):
+    return True
+
+
+def s3_md5_check(local_file, s3_file):
+    return True
+
 def now_as_string():
     return datetime.now().strftime('%Y%m%d-%H%M%S')
 
@@ -94,6 +114,7 @@ def main(args=sys.argv):
     str_now = now_as_string()
     if len(args) != 4 or args[3] not in ['create', 'list', 'get']:
         usage(args[0])
+        post_err('wrong args')
         exit(1)
 
     host = args[1]
@@ -108,10 +129,18 @@ def main(args=sys.argv):
         if action == 'create':
             print('[INF] Executing asbackup...')
             if not create_asbackup(host, namespace, setconfig, str_now):
-                print('[ERR] Can not create asbackup file.')
+                msg = '[ERR] Can not create asbackup file.'
+                print(msg)
+                post_err(msg)
                 exit(4)
 
             filename = '{directory}/{filename}'.format(directory=setconfig['local_path'], filename=make_file_name(namespace, str_now))
+            if not estimated_size_ok(filename, setconfig['estimated_size']):
+                msg = '[ERR] Estimated file size is not OK!'
+                print(msg)
+                post_err(msg)
+                exit(5)
+
             remote_filename = '{s3_path}/{filename}'.format(s3_path=setconfig['s3_path'], filename=make_file_name(namespace, str_now))
             print('[INF] Uploading {local_file} to s3://{bucket}/{remote_filename}...'.format(
                 local_file=filename,
@@ -120,8 +149,25 @@ def main(args=sys.argv):
             ))
 
             start_time = time.time()
-            s3_upload_file(setconfig['s3_bucket'], filename, remote_filename)
-            print('[INF] File successfully uploaded in {delta_time:4.2f} minutes!'.format(delta_time = (time.time() - start_time)/60))
+            s3_client = boto3.client('s3')
+            s3_upload_file(s3_client, setconfig['s3_bucket'], filename, remote_filename)
+            print('[INF] File successfully uploaded in {delta_time:4.2f} minutes!'.format(
+                delta_time = (time.time() - start_time)/60)
+            )
+            if not s3_file_exists(filename):
+                msg = '[ERR] File not exists on S3!'
+                post_err(msg)
+                exit(6)
+            if not s3_md5_check(filename, remote_filename):
+                msg = '[ERR] local md5 != remote md5'
+                post_err(msg)
+                exit(7)
+
+            if setconfig['remove_local']:
+                print('[INF] Removing file {0}...'.format(filename))
+                os.unlink(filename)
+                print('[INF] Done!')
+
         elif action == 'list':
             pass
         elif action == 'get':
