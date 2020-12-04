@@ -110,7 +110,7 @@ def s3_file_exists(s3_client, s3_bucket, filename):
     return True
 
 
-def s3_md5sum(s3_client, s3_bucket, filename):
+def s3_etag(s3_client, s3_bucket, filename):
     try:
         head = s3_client.head_object(
             Bucket=s3_bucket,
@@ -130,7 +130,7 @@ def etag_checksum(filename):
     with open(filename, 'rb') as f:
         for data in iter(lambda: f.read(chunk_size), b''):
             md5s.append(hashlib.md5(data).digest())
-    m = hashlib.md5(''.join(md5s))
+    m = hashlib.md5(b''.join(md5s))
     return '{}-{}'.format(m.hexdigest(), len(md5s))
 
 
@@ -139,7 +139,7 @@ def md5sum(filename):
 
 
 def s3_md5_check(s3_client, s3_bucket, s3_file, local_file):
-    s3_md5 = s3_md5sum(s3_client, s3_bucket, s3_file)
+    s3_md5 = s3_etag(s3_client, s3_bucket, s3_file)
     print('[DBG] s3_md5sum: {0}'.format(s3_md5))
     local_md5 = etag_checksum(local_file)
     print('[DBG] local_md5sum: {0}'.format(local_md5))
