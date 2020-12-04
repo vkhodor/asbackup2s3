@@ -21,17 +21,23 @@ def mkdirs(*args):
             os.makedirs(arg)
 
 
+def make_file_name(namespace, str_now):
+    return '{namespace}_{now}.asbackup.gz'.format(
+        namespace=namespace,
+        now=str_now
+    )
+
 def make_cmd_string(host, namespace, setconfig, str_now):
     str_nice = ''
     if 'nice' in setconfig.keys():
         str_nice = '--nice {0}'.format(setconfig['nice'])
 
-    str_cmd = 'asbackup -h {host} {nice} -n {namespace} -r -o - | gzip -1 > {local_path}/{namespace}_{now}.asbackup.gz'.format(
+    str_cmd = 'asbackup -h {host} {nice} -n {namespace} -r -o - | gzip -1 > {local_path}/{filename}'.format(
         host=host,
         nice=str_nice,
         namespace=namespace,
         local_path=setconfig['local_path'],
-        now=str_now
+        filename=make_file_name(namespace, str_now)
     )
 
     print('[DBG] {0}'.format(str_cmd))
@@ -100,16 +106,11 @@ def main(args=sys.argv):
 
         if action == 'create':
             print('[INF] Executing asbackup...')
-            print('[INF] More details in {log_directory}/{namespace}_{now}.log'.format(
-                log_directory=setconfig['log_directory'],
-                namespace=namespace,
-                now=str_now
-            ))
             if not create_asbackup(host, namespace, setconfig, str_now):
                 print('[ERR] Can not create asbackup file.')
                 exit(4)
-            filename = '{0}/{1}_{2}.asbackup'.format(setconfig['local_path'], namespace, str_now)
-            remote_filename = '{0}/{1}_{2}.asbackup'.format(setconfig['s3_path'], namespace, str_now)
+            filename = '{directory}/{filename}'.format(directory=setconfig['local_path'], filename=make_file_name(namespace, str_now))
+            remote_filename = '{s3_path}/{filename}'.format(s3_path=setconfig['s3_path'], filename=make_file_name(namespace, str_now))
             print('[INF] Uploading {local_file} to s3://{bucket}/{remote_filename}...'.format(
                 local_file=filename,
                 bucket=setconfig['s3_bucket'],
@@ -118,11 +119,7 @@ def main(args=sys.argv):
             s3_upload_file(setconfig['s3_bucket'], filename, remote_filename)
             print('[INF] File successfully uploaded!')
         elif action == 'list':
-            str_now = '20201203-053844'
-            namespace = 'dictionary'
-            filename = '{0}/{1}_{2}.asbackup'.format(setconfig['local_path'], namespace, str_now)
-            remote_filename = '{0}/{1}_{2}.asbackup'.format(setconfig['s3_path'], namespace, str_now)
-            s3_upload_file(setconfig['s3_bucket'], filename, remote_filename)
+            pass
         elif action == 'get':
             pass
 
