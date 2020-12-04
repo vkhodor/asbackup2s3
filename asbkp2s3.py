@@ -7,6 +7,7 @@ import time
 import boto3
 from boto3.s3.transfer import TransferConfig
 from boto3.s3.transfer import  S3Transfer
+from botocore.errorfactory import ClientError
 from config import SERVERS
 
 
@@ -99,12 +100,18 @@ def estimated_size_ok(filename, estimated_size):
     return True
 
 
-def s3_file_exists(filename):
+def s3_file_exists(s3_client, s3_bucket, filename):
+    try:
+        s3_client.head_object(Bucket=s3_bucket, Key=filename)
+    except ClientError:
+        return False
+
     return True
 
 
-def s3_md5_check(local_file, s3_file):
+def s3_md5_check(s3_client, s3_bucket, s3_file, local_file):
     return True
+
 
 def now_as_string():
     return datetime.now().strftime('%Y%m%d-%H%M%S')
@@ -154,8 +161,9 @@ def main(args=sys.argv):
             print('[INF] File successfully uploaded in {delta_time:4.2f} minutes!'.format(
                 delta_time = (time.time() - start_time)/60)
             )
-            if not s3_file_exists(filename):
-                msg = '[ERR] File not exists on S3!'
+
+            if not s3_file_exists(s3_client, setconfig['s3_bucket'], remote_filename):
+                msg = '[ERR] File does not exist on S3. Upload error!'
                 post_err(msg)
                 exit(6)
             if not s3_md5_check(filename, remote_filename):
