@@ -8,7 +8,6 @@ import boto3
 from boto3.s3.transfer import TransferConfig
 from boto3.s3.transfer import  S3Transfer
 from botocore.errorfactory import ClientError
-import hashlib
 from etag import possible_etags
 from config import SERVERS
 
@@ -195,7 +194,7 @@ def main(args=None):
                 msg = '[ERR] local md5 != remote md5'
                 post_err(msg)
                 exit(7)
-            print('[INF] s3 md5sum equal local md5sum.')
+            print('[INF] s3 md5sum equals local md5sum.')
 
             if setconfig['remove_local']:
                 print('[INF] Removing file {0}...'.format(filename))
