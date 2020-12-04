@@ -107,21 +107,21 @@ def s3_file_exists(s3_client, s3_bucket, filename):
         s3_client.head_object(Bucket=s3_bucket, Key=filename)
     except ClientError:
         return False
-
     return True
 
 
 def s3_md5sum(s3_client, s3_bucket, filename):
-    md5sum = ''
     try:
         head = s3_client.head_object(
-            Bucket = s3_bucket,
-            Key = filename
+            Bucket=s3_bucket,
+            Key=filename
         )
-        md5sum = head['ETag'][1:-1]
+        print('[DBG] head:')
+        print(head)
+        return head['ETag'][1:-1]
     except ClientError:
         pass
-    return md5sum
+    return ''
 
 
 def md5sum(filename):
@@ -191,10 +191,13 @@ def main(args=sys.argv):
                 msg = '[ERR] File does not exist on S3. Upload error!'
                 post_err(msg)
                 exit(6)
+            print('[INF] s3 file does exist - OK!')
+
             if not s3_md5_check(s3_client, setconfig['s3_bucket'], remote_filename, filename):
                 msg = '[ERR] local md5 != remote md5'
                 post_err(msg)
                 exit(7)
+            print('[INF] s3 md5sum equal local md5sum!')
 
             if setconfig['remove_local']:
                 print('[INF] Removing file {0}...'.format(filename))
