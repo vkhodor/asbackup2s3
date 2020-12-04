@@ -191,7 +191,7 @@ def main(args=sys.argv):
                 msg = '[ERR] File does not exist on S3. Upload error!'
                 post_err(msg)
                 exit(6)
-            if not s3_md5_check(filename, remote_filename):
+            if not s3_md5_check(s3_client, setconfig['s3_bucket'], remote_filename, filename):
                 msg = '[ERR] local md5 != remote md5'
                 post_err(msg)
                 exit(7)
