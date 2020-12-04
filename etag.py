@@ -30,4 +30,4 @@ def calc(filename, num_parts):
     ]
 
     for partsize in filter(possible_partsizes(filesize, num_parts), partsizes):
-        print(calc_etag(filename, partsize))
+        print(calc_etag(partsize, filename, partsize))
