@@ -17,7 +17,7 @@ SERVERS = {
       's3_path': 'prod/us-aerospike-cluster',
       'remote_store_size': '500Gb',
       'remove_local': False,
-      'estimated_size': 6522147200
+      'estimated_size': 600000000
     },
     'trackdata': {
       'nice': 30,
