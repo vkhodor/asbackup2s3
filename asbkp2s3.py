@@ -121,7 +121,7 @@ def main(args=sys.argv):
 
             start_time = time.time()
             s3_upload_file(setconfig['s3_bucket'], filename, remote_filename)
-            print('[INF] File successfully uploaded in {delta_time}!'.format(delta_time = time.time() - start_time))
+            print('[INF] File successfully uploaded in {delta_time:4.2f} minutes!'.format(delta_time = (time.time() - start_time)/60))
         elif action == 'list':
             pass
         elif action == 'get':
