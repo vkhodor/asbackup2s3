@@ -140,7 +140,7 @@ def etag_checksum(filename, num_parts):
 
 def s3_md5_check(s3_client, s3_bucket, s3_file, local_file):
     s3_md5 = s3_etag(s3_client, s3_bucket, s3_file)
-    parts = s3_md5.split('-')[1]
+    parts = int(s3_md5.split('-')[1])
     print('[DBG] s3_md5sum: {0}'.format(s3_md5))
     local_md5 = etag_checksum(local_file, possible_partsizes())
     print('[DBG] local_md5sum: {0}'.format(local_md5))
