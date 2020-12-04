@@ -20,14 +20,15 @@ def possible_partsizes(filesize, num_parts):
   return lambda partsize: partsize < filesize and (float(filesize) / float(partsize)) <= num_parts
 
 
-def calc(filename, num_parts):
+def possible_etags(filename, num_parts):
     filesize = os.stat(filename).st_size
+    etags = []
 
-    partsizes = [ ## Default Partsizes Map
+    # Default Part Sizes Map
+    part_sizes = [
         8388608, # aws_cli/boto3
         15728640, # s3cmd
-        factor_of_1MB(filesize, num_parts)
+        factor_of_1MB(filesize, num_parts) # used by many clients to upload large files
     ]
 
-    for partsize in filter(possible_partsizes(filesize, num_parts), partsizes):
-        print(partsize, calc_etag(filename, partsize))
+    return [calc_etag(filename, part_size) for part_size in filter(possible_partsizes(filesize, num_parts), part_sizes)]

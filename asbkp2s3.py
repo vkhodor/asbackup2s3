@@ -9,7 +9,7 @@ from boto3.s3.transfer import TransferConfig
 from boto3.s3.transfer import  S3Transfer
 from botocore.errorfactory import ClientError
 import hashlib
-from etag import calc
+from etag import possible_etags
 from config import SERVERS
 
 
@@ -116,36 +116,19 @@ def s3_etag(s3_client, s3_bucket, filename):
             Bucket=s3_bucket,
             Key=filename
         )
-        print('[DBG] head:')
-        print(head)
         return head['ETag'][1:-1]
     except ClientError:
         pass
     return ''
 
 
-def calculate_partsize(filesize, num_parts):
-    return int(filesize / (num_parts - 1))
-
-
-def etag_checksum(filename, num_parts):
-    part_size = calculate_partsize(os.stat(filename).st_size, num_parts)
-    md5s = []
-    with open(filename, 'rb') as f:
-        for data in iter(lambda: f.read(part_size), b''):
-            md5s.append(hashlib.md5(data).digest())
-    m = hashlib.md5(b''.join(md5s))
-    return '{}-{}'.format(m.hexdigest(), len(md5s))
-
-
 def s3_md5_check(s3_client, s3_bucket, s3_file, local_file):
     s3_md5 = s3_etag(s3_client, s3_bucket, s3_file)
     num_parts = int(s3_md5.split('-')[1])
-    print('[DBG] s3_md5sum: {0}'.format(s3_md5))
-    local_md5 = etag_checksum(local_file, num_parts)
-    print('[DBG] local_md5sum: {0}'.format(local_md5))
-    calc(local_file, num_parts)
-    if s3_md5 != local_md5:
+    print('[DBG] s3_etag: {0}'.format(s3_md5))
+    local_etags = possible_etags(local_file, num_parts)
+    print('[DBG] local etags: {0}'.format(local_etags))
+    if s3_md5 not in local_etags:
         return False
     return True
 
@@ -154,7 +137,10 @@ def now_as_string():
     return datetime.now().strftime('%Y%m%d-%H%M%S')
 
 
-def main(args=sys.argv):
+def main(args=None):
+    if args is None:
+        args = sys.argv
+
     str_now = now_as_string()
     if len(args) != 4 or args[3] not in ['create', 'list', 'get']:
         usage(args[0])
@@ -209,7 +195,7 @@ def main(args=sys.argv):
                 msg = '[ERR] local md5 != remote md5'
                 post_err(msg)
                 exit(7)
-            print('[INF] s3 md5sum equal local md5sum!')
+            print('[INF] s3 md5sum equal local md5sum.')
 
             if setconfig['remove_local']:
                 print('[INF] Removing file {0}...'.format(filename))
@@ -230,4 +216,4 @@ def main(args=sys.argv):
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main()
