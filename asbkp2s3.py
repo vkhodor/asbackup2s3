@@ -124,12 +124,14 @@ def s3_etag(s3_client, s3_bucket, filename):
     return ''
 
 
-def possible_partsizes(filesize, num_parts):
-  return lambda partsize: partsize < filesize and (float(filesize) / float(partsize)) <= num_parts
+def calculate_partsize(filesize, num_parts):
+    if filesize % num_parts != 0:
+        return int(filesize / num_parts-1)
+    return int(filesize / num_parts)
 
 
 def etag_checksum(filename, num_parts):
-    part_size = possible_partsizes(os.stat(filename).st_size, num_parts)
+    part_size = calculate_partsize(os.stat(filename).st_size, num_parts)
     md5s = []
     with open(filename, 'rb') as f:
         for data in iter(lambda: f.read(part_size), b''):
