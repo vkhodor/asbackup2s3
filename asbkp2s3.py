@@ -125,8 +125,6 @@ def s3_etag(s3_client, s3_bucket, filename):
 
 
 def calculate_partsize(filesize, num_parts):
-    if filesize % num_parts != 0:
-        return int(filesize / num_parts-1)
     return int(filesize / num_parts)
 
 
