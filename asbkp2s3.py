@@ -9,7 +9,7 @@ from boto3.s3.transfer import TransferConfig
 from boto3.s3.transfer import  S3Transfer
 from botocore.errorfactory import ClientError
 import hashlib
-import pathlib
+from etag import calc
 from config import SERVERS
 
 
@@ -144,6 +144,7 @@ def s3_md5_check(s3_client, s3_bucket, s3_file, local_file):
     print('[DBG] s3_md5sum: {0}'.format(s3_md5))
     local_md5 = etag_checksum(local_file, num_parts)
     print('[DBG] local_md5sum: {0}'.format(local_md5))
+    calc(local_file, num_parts)
     if s3_md5 != local_md5:
         return False
     return True
