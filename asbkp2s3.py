@@ -3,6 +3,7 @@
 import sys
 import os
 from datetime import datetime
+import time
 import boto3
 from boto3.s3.transfer import TransferConfig
 from boto3.s3.transfer import  S3Transfer
@@ -118,11 +119,9 @@ def main(args=sys.argv):
                 remote_filename=remote_filename
             ))
 
-            start_time = datetime.now()
+            start_time = time.time()
             s3_upload_file(setconfig['s3_bucket'], filename, remote_filename)
-            end_time = datetime.now()
-            delta_time = start_time - end_time
-            print('[INF] File successfully uploaded in {delta_time}!'.format(delta_time=delta_time))
+            print('[INF] File successfully uploaded in {delta_time}!'.format(delta_time = time.time() - start_time))
         elif action == 'list':
             pass
         elif action == 'get':
