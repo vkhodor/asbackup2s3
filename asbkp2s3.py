@@ -89,11 +89,12 @@ def create_asbackup(host, namespace, setconfig, str_now):
 
 
 def post_msg(msg, url, username, channel):
+    headers = {'content-type': 'application/json'}
     return requests.post(url, {
         'channel': channel,
         'text': msg,
         'username': username
-    }).json()
+    }, headers=headers).json()
 
 
 def estimated_min_size_ok(filename, estimated_min_size):
