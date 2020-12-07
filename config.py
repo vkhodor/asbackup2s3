@@ -36,7 +36,7 @@ SERVERS = {
 }
 
 SLACK = {
-  'url': 'https://hooks.slack.com/services/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',
+  'url': '',
   'username': 'asbackup2s3',
-  'channel': 'persona-devops'
+  'channel': ''
 }
