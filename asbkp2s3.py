@@ -4,12 +4,13 @@ import sys
 import os
 from datetime import datetime
 import time
+import requests
 import boto3
 from boto3.s3.transfer import TransferConfig
 from boto3.s3.transfer import  S3Transfer
 from botocore.errorfactory import ClientError
 from etag import possible_etags
-from config import SERVERS
+from config import SERVERS, SLACK
 
 
 def usage(app_name):
@@ -87,9 +88,12 @@ def create_asbackup(host, namespace, setconfig, str_now):
     return True
 
 
-def post_err(msg):
-    # TODO: post to slack
-    pass
+def post_msg(msg, url, username, channel):
+    return requests.post(url, {
+        'channel': channel,
+        'text': msg,
+        'username': username
+    }).json()
 
 
 def estimated_min_size_ok(filename, estimated_min_size):
@@ -152,7 +156,7 @@ def main(args=None):
     str_now = now_as_string()
     if len(args) != 4 or args[3] not in ['create', 'list', 'get']:
         usage(args[0])
-        post_err('wrong args')
+        post_msg('wrong args', url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
         exit(1)
 
     host = args[1]
@@ -169,20 +173,20 @@ def main(args=None):
             if not create_asbackup(host, namespace, setconfig, str_now):
                 msg = '[ERR] Can not create asbackup file.'
                 print(msg)
-                post_err(msg)
+                post_msg(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(4)
 
             filename = '{directory}/{filename}'.format(directory=setconfig['local_path'], filename=make_file_name(namespace, str_now))
             if not estimated_min_size_ok(filename, setconfig['estimated_min_size']):
                 msg = '[ERR] Estimated file size is not OK!'
                 print(msg)
-                post_err(msg)
+                post_msg(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(5)
 
             if not estimated_max_size_ok(filename, setconfig['estimated_max_size']):
                 msg = '[ERR] Estimated file size is not OK!'
                 print(msg)
-                post_err(msg)
+                post_msg(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(6)
 
             remote_filename = '{s3_path}/{filename}'.format(s3_path=setconfig['s3_path'], filename=make_file_name(namespace, str_now))
@@ -201,20 +205,23 @@ def main(args=None):
 
             if not s3_file_exists(s3_client, setconfig['s3_bucket'], remote_filename):
                 msg = '[ERR] File does not exist on S3. Upload error!'
-                post_err(msg)
+                post_msg(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(7)
             print('[INF] s3 file does exist - OK!')
 
             if not s3_md5_check(s3_client, setconfig['s3_bucket'], remote_filename, filename):
                 msg = '[ERR] local md5 != remote md5'
-                post_err(msg)
+                post_msg(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(8)
             print('[INF] s3 md5sum equals local md5sum.')
 
             if setconfig['remove_local']:
                 print('[INF] Removing file {0}...'.format(filename))
                 os.unlink(filename)
-                print('[INF] Done!')
+
+            print('[INF] Done!')
+            res = post_msg('test msg', url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
+            print(res)
 
         elif action == 'list':
             pass

@@ -10,6 +10,7 @@ SERVERS = {
       'with_md5': True,
       'estimated_min_size': 30000000000,
       'estimated_max_size': 30000000000
+
     },
     'dictionary': {
       'nice': 30,
@@ -34,3 +35,8 @@ SERVERS = {
   }
 }
 
+SLACK = {
+  'url': 'https://hooks.slack.com/services/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',
+  'username': 'asbackup2s3',
+  'channel': 'persona-devops'
+}
