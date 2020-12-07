@@ -92,11 +92,20 @@ def post_err(msg):
     pass
 
 
-def estimated_size_ok(filename, estimated_size):
+def estimated_min_size_ok(filename, estimated_min_size):
     stat = os.stat(filename)
     print('[DBG] File size: {0}'.format(stat.st_size))
-    print('[DBG] Estimated size: {0}'.format(estimated_size))
-    if stat.st_size <= estimated_size:
+    print('[DBG] Estimated MIN size: {0}'.format(estimated_min_size))
+    if stat.st_size <= estimated_min_size:
+        return False
+    return True
+
+
+def estimated_max_size_ok(filename, estimated_max_size):
+    stat = os.stat(filename)
+    print('[DBG] File size: {0}'.format(stat.st_size))
+    print('[DBG] Estimated MAX size: {0}'.format(estimated_max_size))
+    if stat.st_size > estimated_max_size:
         return False
     return True
 
@@ -164,11 +173,17 @@ def main(args=None):
                 exit(4)
 
             filename = '{directory}/{filename}'.format(directory=setconfig['local_path'], filename=make_file_name(namespace, str_now))
-            if not estimated_size_ok(filename, setconfig['estimated_size']):
+            if not estimated_min_size_ok(filename, setconfig['estimated_min_size']):
                 msg = '[ERR] Estimated file size is not OK!'
                 print(msg)
                 post_err(msg)
                 exit(5)
+
+            if not estimated_max_size_ok(filename, setconfig['estimated_max_size']):
+                msg = '[ERR] Estimated file size is not OK!'
+                print(msg)
+                post_err(msg)
+                exit(6)
 
             remote_filename = '{s3_path}/{filename}'.format(s3_path=setconfig['s3_path'], filename=make_file_name(namespace, str_now))
             print('[INF] Uploading {local_file} to s3://{bucket}/{remote_filename}...'.format(
@@ -187,13 +202,13 @@ def main(args=None):
             if not s3_file_exists(s3_client, setconfig['s3_bucket'], remote_filename):
                 msg = '[ERR] File does not exist on S3. Upload error!'
                 post_err(msg)
-                exit(6)
+                exit(7)
             print('[INF] s3 file does exist - OK!')
 
             if not s3_md5_check(s3_client, setconfig['s3_bucket'], remote_filename, filename):
                 msg = '[ERR] local md5 != remote md5'
                 post_err(msg)
-                exit(7)
+                exit(8)
             print('[INF] s3 md5sum equals local md5sum.')
 
             if setconfig['remove_local']:
@@ -206,8 +221,8 @@ def main(args=None):
         elif action == 'get':
             pass
 
-    except KeyError:
-        print('[ERR] host ({0}) or set ({1}) is not present in configuration.'.format(args[1], args[2]))
+    except KeyError as e:
+        print('[ERR] host ({0}) or set ({1}) is not present in configuration. {2}'.format(args[1], args[2], e))
         exit(2)
     except PermissionError as e:
         print('[ERR] Fatal error: {0}'.format(e))

@@ -8,7 +8,8 @@ SERVERS = {
       'remote_store_size': '5Tb',
       'remove_local': True,
       'with_md5': True,
-      'estimated_size': 30000000000
+      'estimated_min_size': 30000000000,
+      'estimated_max_size': 30000000000
     },
     'dictionary': {
       'nice': 30,
@@ -17,7 +18,8 @@ SERVERS = {
       's3_path': 'prod/us-aerospike-cluster',
       'remote_store_size': '500Gb',
       'remove_local': True,
-      'estimated_size': 600000000
+      'estimated_min_size': 600000000,
+      'estimated_max_size': 600000000
     },
     'trackdata': {
       'nice': 30,
@@ -26,7 +28,8 @@ SERVERS = {
       's3_path': 'prod/us-aerospike-cluster',
       'remote_store_size': '500Gb',
       'remove_local': True,
-      'estimated_size': 30000000000
+      'estimated_min_size': 30000000000,
+      'estimated_max_size': 30000000000
     }
   }
 }
