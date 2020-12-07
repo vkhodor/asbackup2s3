@@ -94,7 +94,7 @@ def post_msg(msg, url, username, channel):
         'channel': channel,
         'text': msg,
         'username': username
-    }, headers=headers).json()
+    }, headers=headers)
 
 
 def estimated_min_size_ok(filename, estimated_min_size):
