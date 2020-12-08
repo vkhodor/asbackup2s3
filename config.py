@@ -36,7 +36,8 @@ SERVERS = {
 }
 
 SLACK = {
-  'url': '',
-  'username': 'asbackup2s3',
-  'channel': ''
+  'url': 'https://hooks.slack.com/services/test',
+  'username': 'test',
+  'channel': 'test',
+  'always_report': True
 }
