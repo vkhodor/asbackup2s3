@@ -163,7 +163,7 @@ def main(args=None):
     str_now = now_as_string()
     if len(args) != 4 or args[3] not in ['create', 'list', 'get']:
         usage(args[0])
-        post_msg_to_slack('wrong args', url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
+        post_msg_to_slack('wrong args {0}'.format(args), url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
         exit(1)
 
     host = args[1]
@@ -180,7 +180,7 @@ def main(args=None):
 
             print('[INF] Executing asbackup...')
             if not create_asbackup(host, namespace, setconfig, str_now):
-                msg = '[ERR] Can not create asbackup file.'
+                msg = '[ERR] Can not create asbackup file. ({0}:{1})'.format(host, namespace)
                 print(msg)
                 post_msg_to_slack(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(4)
@@ -188,13 +188,13 @@ def main(args=None):
             filename = '{directory}/{filename}'.format(directory=setconfig['local_path'], filename=make_file_name(namespace, str_now))
             file_size = os.stat(filename).st_size
             if not estimated_min_size_ok(file_size, setconfig['estimated_min_size']):
-                msg = '[ERR] Estimated file size is not OK!'
+                msg = '[ERR] Estimated file size is not OK! ({0}:{1})'.format(host, namespace)
                 print(msg)
                 post_msg_to_slack(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(5)
 
             if not estimated_max_size_ok(file_size, setconfig['estimated_max_size']):
-                msg = '[ERR] Estimated file size is not OK!'
+                msg = '[ERR] Estimated file size is not OK! ({0}:{1})'.format(host, namespace)
                 print(msg)
                 post_msg_to_slack(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(6)
@@ -215,13 +215,13 @@ def main(args=None):
             )
 
             if not s3_file_exists(s3_client, setconfig['s3_bucket'], remote_filename):
-                msg = '[ERR] File does not exist on S3. Upload error!'
+                msg = '[ERR] File does not exist on S3. Upload error! ({0}:{1})'.format(host, namespace)
                 post_msg_to_slack(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(7)
             print('[INF] s3 file does exist - OK!')
 
             if not s3_md5_check(s3_client, setconfig['s3_bucket'], remote_filename, filename):
-                msg = '[ERR] local md5 != remote md5'
+                msg = '[ERR] local md5 != remote md5 ({0}:{1})'.format(host, namespace)
                 post_msg_to_slack(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(8)
             print('[INF] s3 md5sum equals local md5sum.')
@@ -253,7 +253,7 @@ def main(args=None):
             pass
 
     except KeyError as e:
-        print('[ERR] host ({0}) or set ({1}) is not present in configuration. {2}'.format(args[1], args[2], e))
+        print('[ERR] host ({0}) or namespace ({1}) is not present in configuration. {2}'.format(args[1], args[2], e))
         exit(2)
     except PermissionError as e:
         print('[ERR] Fatal error: {0}'.format(e))
