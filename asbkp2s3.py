@@ -182,7 +182,11 @@ def main(args=None):
             print('[INF] Done!')
 
         elif action == 'list':
-            for f in s3_list_files(s3_client, s3_bucket=setconfig['s3_bucket'], prefix=setconfig['s3_path']):
+            for f in s3_list_files(
+                    s3_client,
+                    s3_bucket=setconfig['s3_bucket'],
+                    prefix='{0}/{1}'.format(setconfig['s3_path'], namespace)
+            ):
                 print(f)
         elif action == 'get':
             pass
