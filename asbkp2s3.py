@@ -143,12 +143,16 @@ def s3_etag(s3_client, s3_bucket, filename):
 
 def s3_md5_check(s3_client, s3_bucket, s3_file, local_file):
     s3_md5 = s3_etag(s3_client, s3_bucket, s3_file)
-    num_parts = int(s3_md5.split('-')[1])
     print('[DBG] s3_etag: {0}'.format(s3_md5))
+    num_parts = 0
+    if len(s3_md5.split('-')) > 1:
+        num_parts = int(s3_md5.split('-')[1])
+
     local_etags = possible_etags(local_file, num_parts)
     print('[DBG] local etags: {0}'.format(local_etags))
     if s3_md5 not in local_etags:
         return False
+
     return True
 
 

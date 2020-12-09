@@ -1,5 +1,15 @@
 import os
+import hashlib
 from hashlib import md5
+
+
+def md5sum(filename, blocksize=65536):
+    hash = hashlib.md5()
+    with open(filename, "rb") as f:
+        for block in iter(lambda: f.read(blocksize), b""):
+            hash.update(block)
+    print('[DBG] simple md5sum for {0}: {1}'.format(filename, hash.hexdigest()))
+    return hash.hexdigest()
 
 
 def factor_of_1MB(filesize, num_parts):
@@ -21,8 +31,10 @@ def possible_partsizes(filesize, num_parts):
 
 
 def possible_etags(filename, num_parts):
+    if num_parts == 0:
+        return [md5sum(filename)]
+
     filesize = os.stat(filename).st_size
-    etags = []
 
     # Default Part Sizes Map
     part_sizes = [
