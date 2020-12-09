@@ -79,8 +79,24 @@ def keys(s3_client, bucket_name, prefix='/', delimiter='/', start_after=''):
     for page in s3_paginator.paginate(Bucket=bucket_name, Prefix=prefix, StartAfter=start_after):
         for content in page.get('Contents', ()):
             print('[DBG] {0}'.format(content))
-            yield content['Key']
+            yield S3Key(content['Key'], content['LastModified'], content['ETag'], content['Size'], content['StorageClass'])
 
 
 def s3_list_files(s3_client, s3_bucket, prefix):
     return keys(s3_client, s3_bucket, prefix=prefix)
+
+
+class S3Key(object):
+    def __init__(self, key, last_modified, etag, size, storage_class):
+        self.key = key
+        self.last_modified = last_modified
+        self.etag = etag
+        self.size = size
+        self.storage_class = storage_class
+
+    def __str__(self):
+        return '{key}\t{size:4.2f} Mbytes\t{last_modified}'.format(
+            key=self.key,
+            size=self.size/1024/1024,
+            last_modified=str(self.last_modified)
+        )
