@@ -191,7 +191,7 @@ def main(args=None):
             for f in sorted(s3keys):
                 print(f)
             print('----------')
-            print('Total S3 usage: {4.4f} MBytes'.format(s3keys_total_size(s3keys)/1024/1024))
+            print('Total S3 usage: {:4.4f} MBytes'.format(s3keys_total_size(s3keys)/1024/1024))
 
         elif action == 'get':
             pass

@@ -88,7 +88,7 @@ def s3_list_files(s3_client, s3_bucket, prefix):
 def s3keys_total_size(lst_s3keys):
     total = 0
     for s3key in lst_s3keys:
-        total +=s3key.size
+        total += s3key.size
     return total
 
 
