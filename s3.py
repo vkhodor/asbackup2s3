@@ -94,8 +94,11 @@ class S3Key(object):
         self.storage_class = storage_class
 
     def __str__(self):
-        return '{key}\t{size:4.2f} Mbytes\t{last_modified}'.format(
+        return '{key}\t{size:4.4f} Mbytes\t{last_modified}'.format(
             key=self.key,
             size=self.size/1024/1024,
             last_modified=str(self.last_modified)
         )
+
+    def __gt__(self, other):
+        return self.size > other.size
