@@ -72,16 +72,15 @@ def s3_md5_check(s3_client, s3_bucket, s3_file, local_file):
     return True
 
 
-
-
-
 def keys(s3_client, bucket_name, prefix='/', delimiter='/', start_after=''):
     s3_paginator = s3_client.get_paginator('list_objects_v2')
     prefix = prefix[1:] if prefix.startswith(delimiter) else prefix
     start_after = (start_after or prefix) if prefix.endswith(delimiter) else start_after
     for page in s3_paginator.paginate(Bucket=bucket_name, Prefix=prefix, StartAfter=start_after):
         for content in page.get('Contents', ()):
+            print('[DBG] {0}'.format(content))
             yield content['Key']
+
 
 def s3_list_files(s3_client, s3_bucket, prefix):
     return keys(s3_client, s3_bucket, prefix=prefix)
