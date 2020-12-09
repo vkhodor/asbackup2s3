@@ -101,4 +101,4 @@ class S3Key(object):
         )
 
     def __gt__(self, other):
-        return self.size > other.size
+        return self.last_modified.timestamp() > other.last_modified.timestamp()
