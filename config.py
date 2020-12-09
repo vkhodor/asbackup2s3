@@ -17,10 +17,12 @@ SERVERS = {
       'local_path': '/mnt/aerospike-backups/directory',
       's3_bucket': 'personartb-backup',
       's3_path': 'prod/us-aerospike-cluster',
-      'remote_store_size': '500Gb',
+      'remote_store_size': 536870912000, # bytes
       'remove_local': True,
       'estimated_min_size': 600000000,
-      'estimated_max_size': 600000000
+      'estimated_max_size': 600000000,
+      'months': 2,
+      'file_per_month': 2
     },
     'trackdata': {
       'nice': 30,

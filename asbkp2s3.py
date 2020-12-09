@@ -179,16 +179,19 @@ def main(args=None):
                 if res.status_code != 200:
                     print('[ERR] Wrong HTTP code. Slack messaging error!')
                     exit(8)
-
             print('[INF] Done!')
 
         elif action == 'list':
-            for f in sorted(s3_list_files(
+            s3keys = s3_list_files(
                     s3_client,
                     s3_bucket=setconfig['s3_bucket'],
                     prefix='{0}/{1}'.format(setconfig['s3_path'], namespace)
-            )):
+            )
+            for f in sorted(s3keys):
                 print(f)
+            print('----------')
+            print('Total S3 usage: {0} MBytes'.format(s3keys_total_size(s3keys)))
+
         elif action == 'get':
             pass
 

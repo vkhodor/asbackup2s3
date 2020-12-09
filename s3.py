@@ -85,6 +85,13 @@ def s3_list_files(s3_client, s3_bucket, prefix):
     return keys(s3_client, s3_bucket, prefix=prefix)
 
 
+def s3keys_total_size(lst_s3keys):
+    total = 0
+    for s3key in lst_s3keys:
+        total +=s3key.size
+    return total
+
+
 class S3Key(object):
     def __init__(self, key, last_modified, etag, size, storage_class):
         self.key = key
@@ -94,7 +101,7 @@ class S3Key(object):
         self.storage_class = storage_class
 
     def __str__(self):
-        return '{key}\t{size:4.4f} Mbytes\t{last_modified}'.format(
+        return '{key}\t{size:4.4f} MBytes\t{last_modified}'.format(
             key=self.key,
             size=self.size/1024/1024,
             last_modified=str(self.last_modified)
