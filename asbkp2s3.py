@@ -12,8 +12,9 @@ from config import SERVERS, SLACK
 
 from s3 import *
 
+
 def usage(app_name):
-    print('Usage: {0} <host> <namespace> create'.format(app_name))
+    print('Usage: {0} <host> <namespace> create|list'.format(app_name))
 
 
 def mkdirs(*args):
