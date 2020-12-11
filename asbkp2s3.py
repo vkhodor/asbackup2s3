@@ -14,7 +14,8 @@ from s3 import *
 
 
 def usage(app_name):
-    print('Usage: {0} <host> <namespace> create|list'.format(app_name))
+    print('Usage: {0} <host> <namespace> create|list|get <s3_key> <filename>'.format(app_name))
+    print('Example: {0} 172.31.31.11 userdata get us/userdata_201212_101010.asbackup.gz ./us_latest.asbackup.gz'.format(app_name))
 
 
 def mkdirs(*args):
@@ -95,7 +96,7 @@ def main(args=None):
         args = sys.argv
 
     str_now = now_as_string()
-    if len(args) != 4 or args[3] not in ['create', 'list', 'get']:
+    if len(args) < 4 or args[3] not in ['create', 'list', 'get']:
         usage(args[0])
         post_msg_to_slack('wrong args {0}'.format(args), url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
         exit(1)
@@ -194,7 +195,22 @@ def main(args=None):
             print('Total S3 usage: {:4.4f} MBytes'.format(s3keys_total_size(s3keys)/1024/1024))
 
         elif action == 'get':
-            pass
+            if len(args) != 6:
+                usage(args[0])
+                exit(10)
+
+            print('[INF] Downloading {remote_filename} from s3://{s3_bucket}'.format(
+                    s3_bucket=setconfig['s3_bucket'],
+                    remote_filename=args[4]
+                )
+            )
+
+            start_time = time.time()
+            s3_download_file(s3_client, setconfig['s3_bucket'], args[5], args[4])
+            print('[INF] File successfully downloaded in {delta_time:4.2f} minutes!'.format(
+                    delta_time = (time.time() - start_time)/60
+                )
+            )
 
     except KeyError as e:
         print('[ERR] host ({0}) or namespace ({1}) is not present in configuration. {2}'.format(args[1], args[2], e))

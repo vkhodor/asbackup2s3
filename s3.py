@@ -37,6 +37,19 @@ def s3_upload_file(s3_client, s3_bucket, local_filename, remote_filename):
     transfer = S3Transfer(s3_client, config)
     transfer.upload_file(local_filename, s3_bucket, remote_filename, callback=print_progress)
 
+def s3_download_file(s3_client, s3_bucket, local_filename, remote_filename):
+    print_progress = make_progress(os.stat(local_filename).st_size, '[INF] File downloaded for')
+
+    config = TransferConfig(
+        multipart_threshold=1024*25,
+        max_concurrency=10,
+        multipart_chunksize=1024*25,
+        use_threads=True
+    )
+    transfer = S3Transfer(s3_client, config)
+    transfer.download_file(s3_bucket, remote_filename, local_filename, callback=print_progress)
+
+
 def s3_file_exists(s3_client, s3_bucket, filename):
     try:
         s3_client.head_object(Bucket=s3_bucket, Key=filename)
