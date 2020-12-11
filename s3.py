@@ -1,7 +1,9 @@
 import os
 import sys
+from datetime import datetime, timedelta
+import time
 from boto3.s3.transfer import TransferConfig
-from boto3.s3.transfer import  S3Transfer
+from boto3.s3.transfer import S3Transfer
 from botocore.errorfactory import ClientError
 
 from etag import possible_etags
@@ -29,9 +31,9 @@ def s3_upload_file(s3_client, s3_bucket, local_filename, remote_filename):
     print_progress = make_progress(os.stat(local_filename).st_size, '[INF] File uploaded for')
 
     config = TransferConfig(
-        multipart_threshold=1024*25,
+        multipart_threshold=1024 * 25,
         max_concurrency=10,
-        multipart_chunksize=1024*25,
+        multipart_chunksize=1024 * 25,
         use_threads=True
     )
     transfer = S3Transfer(s3_client, config)
@@ -39,16 +41,16 @@ def s3_upload_file(s3_client, s3_bucket, local_filename, remote_filename):
 
 
 def s3_download_file(s3_client, s3_bucket, local_filename, remote_filename):
-    s3keys = [ s3key for s3key in s3_list_files(s3_client, s3_bucket, remote_filename)]
+    s3keys = [s3key for s3key in s3_list_files(s3_client, s3_bucket, remote_filename)]
     if len(s3keys) < 1:
         raise ClientError({'Message': 'S3 Key not found: {0}'.format(remote_filename)})
 
     print_progress = make_progress(s3keys[0].size, '[INF] File downloaded for')
 
     config = TransferConfig(
-        multipart_threshold=1024*25,
+        multipart_threshold=1024 * 25,
         max_concurrency=10,
-        multipart_chunksize=1024*25,
+        multipart_chunksize=1024 * 25,
         use_threads=True
     )
     transfer = S3Transfer(s3_client, config)
@@ -96,7 +98,8 @@ def keys(s3_client, bucket_name, prefix='/', delimiter='/', start_after=''):
     start_after = (start_after or prefix) if prefix.endswith(delimiter) else start_after
     for page in s3_paginator.paginate(Bucket=bucket_name, Prefix=prefix, StartAfter=start_after):
         for content in page.get('Contents', ()):
-            yield S3Key(content['Key'], content['LastModified'], content['ETag'], content['Size'], content['StorageClass'])
+            yield S3Key(content['Key'], content['LastModified'], content['ETag'], content['Size'],
+                        content['StorageClass'])
 
 
 def s3_list_files(s3_client, s3_bucket, prefix):
@@ -121,9 +124,53 @@ class S3Key(object):
     def __str__(self):
         return '{key}\t{size:4.4f} MBytes\t{last_modified}'.format(
             key=self.key,
-            size=self.size/1024/1024,
+            size=self.size / 1024 / 1024,
             last_modified=str(self.last_modified)
         )
 
     def __gt__(self, other):
         return self.last_modified.timestamp() > other.last_modified.timestamp()
+
+
+def s3key2delete(s3key: S3Key, months, days_set):
+    last_modified = datetime.fromtimestamp(s3key.last_modified)
+    now = datetime.now()
+    delta = now - last_modified
+    if delta.days >= 7 and last_modified.day not in days_set:
+        return True
+
+    if delta.days >= 30 * months:
+        return True
+
+    return False
+
+
+def test_s3key2delete_new_file():
+    s3key = S3Key(key='test', last_modified=time.time(), etag='zzz', size=0, storage_class='')
+    assert s3key2delete(s3key, months=1, days_set=[1, 15, 30]) == False
+
+
+def test_s3key2delete_week_older_file():
+    last_modified = (datetime.now() - timedelta(days=7)).timestamp()
+    s3key = S3Key(key='test', last_modified=last_modified, etag='zzz', size=0, storage_class='')
+    assert s3key2delete(s3key, months=1, days_set=[1, 15, 30]) == True
+
+
+def test_s3key2delete_older_then_week_file():
+    last_modified = (datetime.now() - timedelta(days=8)).timestamp()
+    s3key = S3Key(key='test', last_modified=last_modified, etag='zzz', size=0, storage_class='')
+    assert s3key2delete(s3key, months=1, days_set=[1, 15, 30]) == True
+
+
+def test_s3key2delete_older_then_week_but_in_days_file():
+    last_modified = (datetime.now() - timedelta(days=60))
+
+    last_modified = last_modified.replace(day=15)
+    s3key = S3Key(key='test', last_modified=last_modified.timestamp(), etag='zzz', size=0, storage_class='')
+    assert s3key2delete(s3key, months=10, days_set=[1, 15, 30]) == False
+    assert s3key2delete(s3key, months=1, days_set=[1, 15, 30]) == True
+
+    last_modified = last_modified.replace(day=12)
+    s3key = S3Key(key='test', last_modified=last_modified.timestamp(), etag='zzz', size=0, storage_class='')
+    assert s3key2delete(s3key, months=10, days_set=[1, 15, 30]) == True
+    assert s3key2delete(s3key, months=1, days_set=[1, 15, 30]) == True
