@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
-import os
-from datetime import datetime
-import time
 import requests
 import json
 import boto3
@@ -181,6 +177,22 @@ def main(args=None):
                     print('[ERR] Wrong HTTP code. Slack messaging error!')
                     exit(8)
             print('[INF] Done!')
+
+            s3keys = [ s3key for s3key in s3_list_files(
+                            s3_client,
+                            s3_bucket=setconfig['s3_bucket'],
+                            prefix='{0}/{1}'.format(setconfig['s3_path'], namespace)
+                        )
+                    ]
+
+            print('[INF] Removing old s3 files...')
+            for s3key in s3keys:
+                if s3key2delete(s3key, setconfig['s3_store_months'], setconfig['s3_store_days']):
+                    try:
+                        print('[INF] Removing s3 file {0}...'.format(s3key))
+#                        s3_client.delete_object(Bucket=setconfig['s3_bucket'], Key=s3key.key)
+                    except ClientError as e:
+                        print('[ERR] Client error: {0}'.format(e))
 
         elif action == 'list':
             s3keys = [ s3key for s3key in s3_list_files(
