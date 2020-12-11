@@ -37,8 +37,13 @@ def s3_upload_file(s3_client, s3_bucket, local_filename, remote_filename):
     transfer = S3Transfer(s3_client, config)
     transfer.upload_file(local_filename, s3_bucket, remote_filename, callback=print_progress)
 
+
 def s3_download_file(s3_client, s3_bucket, local_filename, remote_filename):
-    print_progress = make_progress(os.stat(local_filename).st_size, '[INF] File downloaded for')
+    s3keys = [ s3key for s3key in s3_list_files(s3_client, s3_bucket, remote_filename)]
+    if len(s3keys) < 1:
+        raise ClientError({'Message': 'S3 Key not found: {0}'.format(remote_filename)})
+
+    print_progress = make_progress(s3keys[0].size, '[INF] File downloaded for')
 
     config = TransferConfig(
         multipart_threshold=1024*25,
