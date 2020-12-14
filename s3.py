@@ -133,10 +133,9 @@ class S3Key(object):
 
 
 def s3key2delete(s3key: S3Key, months, days_set):
-    last_modified = datetime.fromtimestamp(s3key.last_modified)
     now = datetime.now()
-    delta = now - last_modified
-    if delta.days >= 7 and last_modified.day not in days_set:
+    delta = now - s3key.last_modified
+    if delta.days >= 7 and s3key.last_modified.day not in days_set:
         return True
 
     if delta.days >= 30 * months:
@@ -146,18 +145,18 @@ def s3key2delete(s3key: S3Key, months, days_set):
 
 
 def test_s3key2delete_new_file():
-    s3key = S3Key(key='test', last_modified=time.time(), etag='zzz', size=0, storage_class='')
+    s3key = S3Key(key='test', last_modified=datetime.now(), etag='zzz', size=0, storage_class='')
     assert s3key2delete(s3key, months=1, days_set=[1, 15, 30]) == False
 
 
 def test_s3key2delete_week_older_file():
-    last_modified = (datetime.now() - timedelta(days=7)).timestamp()
+    last_modified = (datetime.now() - timedelta(days=7))
     s3key = S3Key(key='test', last_modified=last_modified, etag='zzz', size=0, storage_class='')
     assert s3key2delete(s3key, months=1, days_set=[1, 15, 30]) == True
 
 
 def test_s3key2delete_older_then_week_file():
-    last_modified = (datetime.now() - timedelta(days=8)).timestamp()
+    last_modified = (datetime.now() - timedelta(days=8))
     s3key = S3Key(key='test', last_modified=last_modified, etag='zzz', size=0, storage_class='')
     assert s3key2delete(s3key, months=1, days_set=[1, 15, 30]) == True
 
@@ -166,11 +165,11 @@ def test_s3key2delete_older_then_week_but_in_days_file():
     last_modified = (datetime.now() - timedelta(days=60))
 
     last_modified = last_modified.replace(day=15)
-    s3key = S3Key(key='test', last_modified=last_modified.timestamp(), etag='zzz', size=0, storage_class='')
+    s3key = S3Key(key='test', last_modified=last_modified, etag='zzz', size=0, storage_class='')
     assert s3key2delete(s3key, months=10, days_set=[1, 15, 30]) == False
     assert s3key2delete(s3key, months=1, days_set=[1, 15, 30]) == True
 
     last_modified = last_modified.replace(day=12)
-    s3key = S3Key(key='test', last_modified=last_modified.timestamp(), etag='zzz', size=0, storage_class='')
+    s3key = S3Key(key='test', last_modified=last_modified, etag='zzz', size=0, storage_class='')
     assert s3key2delete(s3key, months=10, days_set=[1, 15, 30]) == True
     assert s3key2delete(s3key, months=1, days_set=[1, 15, 30]) == True
