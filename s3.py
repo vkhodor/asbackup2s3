@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import time
 from boto3.s3.transfer import TransferConfig
 from boto3.s3.transfer import S3Transfer
@@ -133,7 +133,7 @@ class S3Key(object):
 
 
 def s3key2delete(s3key: S3Key, months, days_set):
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     delta = now - s3key.last_modified
     if delta.days >= 7 and s3key.last_modified.day not in days_set:
         return True

@@ -189,10 +189,12 @@ def main(args=None):
             for s3key in s3keys:
                 if s3key2delete(s3key, setconfig['s3_store_months'], setconfig['s3_store_days']):
                     try:
-                        print('[INF] Removing s3 file {0}...'.format(s3key))
-#                        s3_client.delete_object(Bucket=setconfig['s3_bucket'], Key=s3key.key)
+                        print('[INF] Found too old s3 file {0}. Removing...'.format(s3key))
+                        s3_client.delete_object(Bucket=setconfig['s3_bucket'], Key=s3key.key)
                     except ClientError as e:
                         print('[ERR] Client error: {0}'.format(e))
+                else:
+                    print('[INF] Skip s3 file {0}. It is good.'.format(s3key))
 
         elif action == 'list':
             s3keys = [ s3key for s3key in s3_list_files(
