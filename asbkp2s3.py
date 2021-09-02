@@ -3,6 +3,7 @@
 import requests
 import json
 import boto3
+from pid import PidFile
 
 from config import SERVERS, SLACK
 
@@ -87,6 +88,12 @@ def now_as_string():
     return datetime.now().strftime('%Y%m%d-%H%M%S')
 
 
+def delete_local_file(filepath):
+    if os.path.isfile(filepath):
+        print('[INF] Removing file {0}...'.format(filepath))
+        os.remove(filepath)
+
+
 def main(args=None):
     if args is None:
         args = sys.argv
@@ -110,23 +117,26 @@ def main(args=None):
 
         if action == 'create':
             start_bkp_time = time.time()
+            filename = '{directory}/{filename}'.format(directory=setconfig['local_path'], filename=make_file_name(namespace, str_now))
 
             print('[INF] Executing asbackup...')
             if not create_asbackup(host, namespace, setconfig, str_now):
+                delete_local_file(filename)
                 msg = '[ERR] Can not create asbackup file. ({0}:{1})'.format(host, namespace)
                 print(msg)
                 post_msg_to_slack(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(4)
 
-            filename = '{directory}/{filename}'.format(directory=setconfig['local_path'], filename=make_file_name(namespace, str_now))
             file_size = os.stat(filename).st_size
             if not estimated_min_size_ok(file_size, setconfig['estimated_min_size']):
+                delete_local_file(filename)
                 msg = '[ERR] Estimated file size is not OK! ({0}:{1})'.format(host, namespace)
                 print(msg)
                 post_msg_to_slack(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(5)
 
             if not estimated_max_size_ok(file_size, setconfig['estimated_max_size']):
+                delete_local_file(filename)
                 msg = '[ERR] Estimated file size is not OK! ({0}:{1})'.format(host, namespace)
                 print(msg)
                 post_msg_to_slack(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
@@ -147,20 +157,21 @@ def main(args=None):
             )
 
             if not s3_file_exists(s3_client, setconfig['s3_bucket'], remote_filename):
+                delete_local_file(filename)
                 msg = '[ERR] File does not exist on S3. Upload error! ({0}:{1})'.format(host, namespace)
                 post_msg_to_slack(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(7)
             print('[INF] s3 file does exist - OK!')
 
             if not s3_md5_check(s3_client, setconfig['s3_bucket'], remote_filename, filename):
+                delete_local_file(filename)
                 msg = '[ERR] local md5 != remote md5 ({0}:{1})'.format(host, namespace)
                 post_msg_to_slack(msg, url=SLACK['url'], username=SLACK['username'], channel=SLACK['channel'])
                 exit(8)
             print('[INF] s3 md5sum equals local md5sum.')
 
             if setconfig['remove_local']:
-                print('[INF] Removing file {0}...'.format(filename))
-                os.unlink(filename)
+                delete_local_file(filename)
 
             total_minutes = (time.time() - start_bkp_time)/60
             megabytes_size = file_size / 1024 / 1024
@@ -235,4 +246,8 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    main()
+    if not os.path.exists('/var/run/asbkp2s3/'):
+        os.makedirs('/var/run/asbkp2s3/')
+    pid_file = '/var/run/asbkp2s3/{0}.pid'.format(sys.argv[2])
+    with PidFile(pid_file):
+        main()
